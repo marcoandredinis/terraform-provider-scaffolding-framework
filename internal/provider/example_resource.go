@@ -23,11 +23,6 @@ func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 		MarkdownDescription: "Example resource",
 
 		Attributes: map[string]tfsdk.Attribute{
-			"configurable_attribute": {
-				MarkdownDescription: "Example configurable attribute",
-				Optional:            true,
-				Type:                types.StringType,
-			},
 			"id": {
 				Computed:            true,
 				MarkdownDescription: "Example identifier",
@@ -35,6 +30,17 @@ func (t exampleResourceType) GetSchema(ctx context.Context) (tfsdk.Schema, diag.
 					tfsdk.UseStateForUnknown(),
 				},
 				Type: types.StringType,
+			},
+			"metadata": {
+				MarkdownDescription: "Meta info",
+				Optional:            true,
+				Attributes: tfsdk.SingleNestedAttributes(map[string]tfsdk.Attribute{
+					"name": {
+						Description: "Name is an object name",
+						Required:    true,
+						Type:        types.StringType,
+					},
+				}),
 			},
 		},
 	}, nil
@@ -49,8 +55,10 @@ func (t exampleResourceType) NewResource(ctx context.Context, in tfsdk.Provider)
 }
 
 type exampleResourceData struct {
-	ConfigurableAttribute types.String `tfsdk:"configurable_attribute"`
-	Id                    types.String `tfsdk:"id"`
+	Id       types.String `tfsdk:"id"`
+	Metadata struct {
+		Name types.String `tfsdk:"name"`
+	} `tfsdk:"metadata"`
 }
 
 type exampleResource struct {
@@ -78,6 +86,8 @@ func (r exampleResource) Create(ctx context.Context, req tfsdk.CreateResourceReq
 	// For the purposes of this example code, hardcoding a response value to
 	// save into the Terraform state.
 	data.Id = types.String{Value: "example-id"}
+
+	data.Metadata.Name = types.String{Value: "abc"}
 
 	// write logs using the tflog package
 	// see https://pkg.go.dev/github.com/hashicorp/terraform-plugin-log/tflog
